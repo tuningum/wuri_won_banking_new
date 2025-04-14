@@ -6,11 +6,11 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
-  // iOS 시스템 UI 설정 (iOS에서 중요)
+  // iOS 시스템 UI 설정
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
       statusBarColor: Colors.transparent,
-      statusBarBrightness: Brightness.light, // iOS 상태바 설정
+      statusBarBrightness: Brightness.light,
       systemNavigationBarColor: Colors.white,
     ),
   );
@@ -45,15 +45,11 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
-  // 시퀀스 정의
+  // 시퀀스 정의 - 첫 번째 시퀀스만
   static const int sequence1End = 28;    // frame_1 ~ frame_28
-  static const int sequence2End = 71;    // frame_29 ~ frame_71
-  static const int sequence3End = 82;    // frame_72 ~ frame_82
-  static const int sequence4End = 88;    // frame_83 ~ frame_88
-  static const int sequence5End = 175;   // frame_89 ~ frame_175
 
   // 프레임당 지속 시간 (애니메이션 속도 조절)
-  static const int frameDurationMs = 50; // 값을 조절하여 애니메이션 속도 변경 (값이 클수록 느림)
+  static const int frameDurationMs = 50;
 
   int _stage = 0;
   int _currentFrame = 1;
@@ -70,7 +66,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void initState() {
     super.initState();
 
-    // 첫 프레임이 그려진 후에 이미지 로드 시작
+    // 중요: 직접 호출하지 않고 WidgetsBinding.instance.addPostFrameCallback 사용
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _preloadInitialImages();
     });
@@ -78,6 +74,8 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   Future<void> _preloadInitialImages() async {
     try {
+      print('첫 프레임 로드 시작');
+
       // 처음 몇 개의 이미지만 미리 로드
       for (int i = 1; i <= 5; i++) {
         final image = AssetImage('assets/frames/frame_$i.png');
@@ -115,7 +113,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     }
   }
 
-
   void _setupSequenceAnimation(int start, int end, VoidCallback onComplete) {
     // 이전 컨트롤러 정리
     if (_isAnimating && _animationController.isAnimating) {
@@ -125,7 +122,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     // 애니메이션 컨트롤러 설정
     _animationController = AnimationController(
-      duration: Duration(milliseconds: (end - start + 1) * frameDurationMs), // 속도 조절
+      duration: Duration(milliseconds: (end - start + 1) * frameDurationMs),
       vsync: this,
     );
 
@@ -136,7 +133,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
       if (frame != _currentFrame && frame >= start && frame <= end) {
         _currentFrame = frame;
-        _frameNotifier.value = frame; // ValueNotifier 업데이트
+        _frameNotifier.value = frame;
       }
     });
 
@@ -151,80 +148,9 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
     });
   }
 
-  // 터치 이벤트 처리
-  void _handleTap() async {
-    if (_isAnimating) {
-      return;
-    }
-
-    if (_stage == 1) {
-      // 시퀀스 2 설정 및 재생
-      _setupSequenceAnimation(sequence1End + 1, sequence2End, () {
-        // 시퀀스 완료 후 이미지 캐시 정리
-        PaintingBinding.instance.imageCache.clear();
-      });
-      await _animationController.forward().orCancel;
-
-      if (!mounted) return;
-
-      // 시퀀스 간 딜레이
-      await Future.delayed(const Duration(milliseconds: 125));
-
-      if (!mounted) return;
-
-      // 시퀀스 3 설정 및 재생
-      _setupSequenceAnimation(sequence2End + 1, sequence3End, () {
-        // 시퀀스 완료 후 이미지 캐시 정리
-        PaintingBinding.instance.imageCache.clear();
-
-        if (mounted) {
-          setState(() {
-            _stage = 2;
-          });
-        }
-      });
-
-      _animationController.forward();
-
-    } else if (_stage == 2) {
-      // 하얀색 화면 처리
-      setState(() {
-        _currentFrame = -1;
-        _frameNotifier.value = -1;
-      });
-
-      // 하얀색 화면 표시 시간
-      await Future.delayed(const Duration(milliseconds: 50));
-
-      if (mounted) {
-        setState(() {
-          _stage = 3;
-          _currentFrame = sequence3End + 1;
-          _frameNotifier.value = sequence3End + 1;
-        });
-      }
-    } else if (_stage == 3) {
-      if (_currentFrame < sequence4End) {
-        setState(() {
-          _currentFrame++;
-          _frameNotifier.value = _currentFrame;
-        });
-      } else {
-        // 마지막 시퀀스 설정 및 재생
-        _setupSequenceAnimation(sequence4End + 1, sequence5End, () {
-          // 시퀀스 완료 후 이미지 캐시 정리
-          PaintingBinding.instance.imageCache.clear();
-
-          if (mounted) {
-            setState(() {
-              _stage = 4;
-            });
-          }
-        });
-
-        _animationController.forward();
-      }
-    }
+  // 터치 이벤트 처리 - 첫 번째 시퀀스에서는 아무 동작 없음
+  void _handleTap() {
+    print('터치 감지: 스테이지=$_stage');
   }
 
   @override
@@ -240,43 +166,38 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
     return Scaffold(
       backgroundColor: Colors.white,
-      body: SafeArea(
-        bottom: false, // 하단 안전 영역 무시 (전체 화면 사용)
-        child: GestureDetector(
-          onTap: _handleTap,
-          behavior: HitTestBehavior.opaque,
-          child: Container(
-            color: Colors.white,
-            child: _currentFrame == -1
-                ? Container(color: Colors.white) // 하얀색 화면
-                : ValueListenableBuilder<int>(
-              valueListenable: _frameNotifier,
-              builder: (context, frameNumber, _) {
-                return RepaintBoundary(
-                  child: Image.asset(
-                    'assets/frames/frame_$frameNumber.png',
-                    fit: BoxFit.contain,
-                    width: double.infinity,
-                    height: double.infinity,
-                    gaplessPlayback: true,
-                    filterQuality: FilterQuality.medium, // 품질과 성능의 균형
-                    errorBuilder: (context, error, stackTrace) {
-                      print('이미지 로드 실패: $frameNumber, 오류: $error');
-                      return Container(
-                        color: Colors.white,
-                        child: Center(
-                          child: Text(
-                            '이미지 로드 실패: $frameNumber\n$error',
-                            style: const TextStyle(color: Colors.red),
-                            textAlign: TextAlign.center,
-                          ),
+      body: GestureDetector(
+        onTap: _handleTap,
+        behavior: HitTestBehavior.opaque,
+        child: Container(
+          color: Colors.white,
+          child: ValueListenableBuilder<int>(
+            valueListenable: _frameNotifier,
+            builder: (context, frameNumber, _) {
+              return RepaintBoundary(
+                child: Image.asset(
+                  'assets/frames/frame_$frameNumber.png',
+                  fit: BoxFit.contain,
+                  width: double.infinity,
+                  height: double.infinity,
+                  gaplessPlayback: true,
+                  filterQuality: FilterQuality.medium,
+                  errorBuilder: (context, error, stackTrace) {
+                    print('이미지 로드 실패: $frameNumber, 오류: $error');
+                    return Container(
+                      color: Colors.white,
+                      child: Center(
+                        child: Text(
+                          '이미지 로드 실패: $frameNumber\n$error',
+                          style: const TextStyle(color: Colors.red),
+                          textAlign: TextAlign.center,
                         ),
-                      );
-                    },
-                  ),
-                );
-              },
-            ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
           ),
         ),
       ),
@@ -287,7 +208,6 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   void dispose() {
     _frameNotifier.dispose();
     _animationController.dispose();
-    PaintingBinding.instance.imageCache.clear(); // 앱 종료 시 이미지 캐시 정리
     super.dispose();
   }
 }
