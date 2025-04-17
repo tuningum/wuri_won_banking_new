@@ -90,6 +90,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
             ? Image.asset(
           imagePath,
           fit: BoxFit.cover,
+          gaplessPlayback: true,
           errorBuilder: (context, error, stackTrace) => const Text(
             '이미지를 불러올 수 없습니다.',
             style: TextStyle(color: Colors.red),
