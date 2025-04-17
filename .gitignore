@@ -1,3 +1,8 @@
+# ✅ FORCE INCLUDE FRAME IMAGES (이 줄은 반드시 최상단)
+!assets/
+!assets/frames/
+!assets/frames/*.png
+
 # Flutter/Dart 관련
 .dart_tool/
 .flutter-plugins
