@@ -44,53 +44,56 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
   static const int totalFrames = 175;
   static const int frameDurationMs = 40;
 
-  int _currentFrame = 1;
+  int _currentFrame = 0;
   bool _isLoading = true;
+  final Map<int, Image> _frameCache = {};
 
   @override
   void initState() {
     super.initState();
-    _playAnimation();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _precacheInitialFrame();
+    });
   }
 
-  void _playAnimation() async {
-    for (int i = 1; i <= totalFrames; i++) {
-      final path = 'assets/frames/frame_${i.toString().padLeft(3, '0')}.png';
+  Future<void> _precacheInitialFrame() async {
+    final first = Image.asset('assets/frames/frame_0001.png');
+    await precacheImage(first.image, context);
+    setState(() {
+      _frameCache[1] = first;
+      _currentFrame = 1;
+      _isLoading = false;
+    });
+    _playFrames(2, totalFrames);
+  }
 
+  Future<void> _playFrames(int start, int end) async {
+    for (int i = start; i <= end; i++) {
+      final path = 'assets/frames/frame_${i.toString().padLeft(4, '0')}.png';
+      final img = Image.asset(path);
       try {
-        await precacheImage(AssetImage(path), context);
+        await precacheImage(img.image, context);
       } catch (e) {
         debugPrint('❌ 이미지 실패: $path');
       }
-
+      _frameCache[i] = img;
       await Future.delayed(const Duration(milliseconds: frameDurationMs));
-
       if (!mounted) return;
-      setState(() {
-        _currentFrame = i;
-      });
+      setState(() => _currentFrame = i);
     }
-
-    setState(() => _isLoading = false);
   }
 
   @override
   Widget build(BuildContext context) {
-    final path = 'assets/frames/frame_${_currentFrame.toString().padLeft(3, '0')}.png';
-
+    final path = 'assets/frames/frame_${_currentFrame.toString().padLeft(4, '0')}.png';
     return Scaffold(
       backgroundColor: Colors.black,
       body: Center(
-        child: Image.asset(
-          path,
-          fit: BoxFit.contain,
-          errorBuilder: (context, error, stackTrace) {
-            return const Text(
+        child: _frameCache[_currentFrame] ??
+            const Text(
               '이미지를 불러올 수 없습니다.',
               style: TextStyle(color: Colors.red, fontSize: 16),
-            );
-          },
-        ),
+            ),
       ),
     );
   }
