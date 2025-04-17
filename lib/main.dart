@@ -41,32 +41,26 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMixin {
-  static const int sequence1End = 28;
-  static const int frameDurationMs = 50;
+  static const int totalFrames = 175;
+  static const int frameDurationMs = 40;
 
-  int _stage = 0;
   int _currentFrame = 1;
   bool _isLoading = true;
-  bool _isAnimating = false;
-
-  late AnimationController _controller;
 
   @override
   void initState() {
     super.initState();
-    _startAnimation();
+    _playAnimation();
   }
 
-  void _startAnimation() async {
-    setState(() => _isAnimating = true);
-
-    for (int i = 1; i <= sequence1End; i++) {
-      final assetPath = 'assets/frames/frame_$i.png';
+  void _playAnimation() async {
+    for (int i = 1; i <= totalFrames; i++) {
+      final path = 'assets/frames/frame_$i.png';
 
       try {
-        await precacheImage(AssetImage(assetPath), context);
+        await precacheImage(AssetImage(path), context);
       } catch (e) {
-        debugPrint('⚠️ Failed to load image: $assetPath');
+        debugPrint('❌ 이미지 실패: $path');
       }
 
       await Future.delayed(const Duration(milliseconds: frameDurationMs));
@@ -82,27 +76,22 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final imagePath = 'assets/frames/frame_$_currentFrame.png';
+    final path = 'assets/frames/frame_$_currentFrame.png';
 
     return Scaffold(
+      backgroundColor: Colors.black,
       body: Center(
-        child: _isLoading
-            ? Image.asset(
-          imagePath,
-          fit: BoxFit.cover,
-          gaplessPlayback: true,
-          errorBuilder: (context, error, stackTrace) => const Text(
-            '이미지를 불러올 수 없습니다.',
-            style: TextStyle(color: Colors.red),
-          ),
-        )
-            : const Text('애니메이션 종료'),
+        child: Image.asset(
+          path,
+          fit: BoxFit.contain,
+          errorBuilder: (context, error, stackTrace) {
+            return const Text(
+              '이미지를 불러올 수 없습니다.',
+              style: TextStyle(color: Colors.red, fontSize: 16),
+            );
+          },
+        ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    super.dispose();
   }
 }
