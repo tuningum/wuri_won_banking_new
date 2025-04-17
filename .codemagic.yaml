@@ -1,0 +1,22 @@
+workflows:
+  build-ios-ipa:
+    name: Build iOS unsigned IPA
+    environment:
+      flutter: stable
+      xcode: latest
+    scripts:
+      - name: Flutter pub get
+        script: flutter pub get
+
+      - name: Build iOS without code signing
+        script: flutter build ios --release --no-codesign
+
+      - name: Create Payload and zip as .ipa
+        script: |
+          mkdir Payload
+          cp -r build/ios/iphoneos/Runner.app Payload/
+          zip -r Runner.ipa Payload
+          rm -rf Payload
+
+    artifacts:
+      - Runner.ipa
