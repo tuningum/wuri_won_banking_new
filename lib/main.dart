@@ -55,7 +55,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   void _playAnimation() async {
     for (int i = 1; i <= totalFrames; i++) {
-      final path = 'assets/frames/frame_$i.png';
+      final path = 'assets/frames/frame_${i.toString().padLeft(3, '0')}.png';
 
       try {
         await precacheImage(AssetImage(path), context);
@@ -76,7 +76,7 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   @override
   Widget build(BuildContext context) {
-    final path = 'assets/frames/frame_$_currentFrame.png';
+    final path = 'assets/frames/frame_${_currentFrame.toString().padLeft(3, '0')}.png';
 
     return Scaffold(
       backgroundColor: Colors.black,
