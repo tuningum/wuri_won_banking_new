@@ -58,13 +58,17 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
 
   Future<void> _precacheInitialFrame() async {
     final first = Image.asset('assets/frames/frame_0001.png');
-    await precacheImage(first.image, context);
-    setState(() {
-      _frameCache[1] = first;
-      _currentFrame = 1;
-      _isLoading = false;
-    });
-    _playFrames(2, totalFrames);
+    try {
+      await precacheImage(first.image, context);
+      setState(() {
+        _frameCache[1] = first;
+        _currentFrame = 1;
+        _isLoading = false;
+      });
+      _playFrames(2, totalFrames);
+    } catch (e) {
+      debugPrint('❌ 프리캐시 실패: frame_0001.png');
+    }
   }
 
   Future<void> _playFrames(int start, int end) async {
@@ -90,9 +94,18 @@ class _SplashScreenState extends State<SplashScreen> with TickerProviderStateMix
       backgroundColor: Colors.black,
       body: Center(
         child: _frameCache[_currentFrame] ??
-            const Text(
-              '이미지를 불러올 수 없습니다.',
-              style: TextStyle(color: Colors.red, fontSize: 16),
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  '❌ 이미지 불러오기 실패',
+                  style: TextStyle(color: Colors.red, fontSize: 18),
+                ),
+                Text(
+                  path,
+                  style: const TextStyle(color: Colors.white),
+                ),
+              ],
             ),
       ),
     );
